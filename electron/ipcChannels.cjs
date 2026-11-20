@@ -21,6 +21,10 @@ const IPC_INVOKE = {
   BLOCKER_TOGGLE: 'blocker:toggle',
   BLOCKER_REMOVE: 'blocker:remove',
   BLOCKER_CHECK: 'blocker:check',
+  MONITOR_STATUS: 'monitor:status',
+  MONITOR_TOGGLE: 'monitor:toggle',
+  SYNC_STATUS: 'sync:status',
+  SYNC_CONFIGURE: 'sync:configure',
   GAMIFICATION_GET: 'gamification:get',
   SETTINGS_UPDATE: 'settings:update',
   SYSTEM_INFO: 'system:info',
@@ -31,6 +35,9 @@ const IPC_EVENTS = {
   SESSION_COMPLETED: 'session:completed',
   ACHIEVEMENT_UNLOCKED: 'achievement:unlocked',
   DISTRACTION_BLOCKED: 'distraction:blocked',
+  MONITOR_STATUS: 'monitor:status',
+  ROOMS_SYNCED: 'rooms:synced',
+  SYNC_STATUS: 'sync:status',
 };
 
 module.exports = { IPC_INVOKE, IPC_EVENTS };

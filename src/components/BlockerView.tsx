@@ -1,20 +1,25 @@
 import { FormEvent, useState } from 'react';
-import { Plus, Shield, ShieldAlert, Trash2 } from 'lucide-react';
-import type { BlockedResource } from '../types';
+import { Eye, Plus, Shield, ShieldAlert, Trash2 } from 'lucide-react';
+import type { BlockedResource, MonitorStatus } from '../types';
 
 type Props = {
   resources: BlockedResource[];
+  monitorStatus: MonitorStatus | null;
   onRefresh: () => Promise<void>;
 };
 
 const CATEGORIES = ['Social', 'Video', 'Gaming', 'News', 'Messaging', 'Other'];
 
-export function BlockerView({ resources, onRefresh }: Props) {
+export function BlockerView({ resources, monitorStatus, onRefresh }: Props) {
   const [domainOrApp, setDomainOrApp] = useState('');
   const [category, setCategory] = useState('Social');
   const [testTarget, setTestTarget] = useState('');
   const [testResult, setTestResult] = useState<{ blocked: boolean; message: string } | null>(null);
   const [error, setError] = useState('');
+
+  const handleToggleMonitor = async () => {
+    await window.zenithAPI.monitor.toggle(!monitorStatus?.running);
+  };
 
   const handleAdd = async (e: FormEvent) => {
     e.preventDefault();
@@ -78,6 +83,52 @@ export function BlockerView({ resources, onRefresh }: Props) {
           {error}
         </div>
       )}
+
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div className="row-between">
+          <div>
+            <div className="row-gap">
+              <Eye size={17} color="var(--primary)" />
+              <strong style={{ fontSize: 15 }}>Live macOS Active-Window &amp; Browser Tab Monitor</strong>
+              <span className={`badge ${monitorStatus?.running ? 'badge-teal' : 'badge-muted'}`}>
+                {monitorStatus?.running ? 'Monitoring Active' : 'Standby'}
+              </span>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
+              Runs in the Electron Main process during focus sessions (or when toggled on). Checks your active app and
+              Chrome/Safari/Arc/Brave tab URL every 3s, logs <span className="mono">DISTRACTION_BLOCKED</span> events,
+              and brings Zenith back to focus when Strict Blocking is enabled.
+            </p>
+          </div>
+          <button
+            type="button"
+            className={`toggle ${monitorStatus?.running ? 'on' : ''}`}
+            onClick={handleToggleMonitor}
+            aria-label="Toggle live distraction monitor"
+          />
+        </div>
+        {monitorStatus?.running && (
+          <div
+            className="row-gap"
+            style={{
+              marginTop: 12,
+              padding: '9px 12px',
+              borderRadius: 10,
+              background: 'var(--bg)',
+              fontSize: 12.5,
+              flexWrap: 'wrap',
+            }}>
+            <span>
+              Frontmost App: <strong>{monitorStatus.activeApp || 'Detecting...'}</strong>
+            </span>
+            {monitorStatus.activeUrl && (
+              <span className="mono" style={{ color: 'var(--text-secondary)' }}>
+                · {monitorStatus.activeUrl.slice(0, 70)}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="grid-2" style={{ marginBottom: 20 }}>
         <div className="card">

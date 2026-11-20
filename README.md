@@ -43,6 +43,8 @@ Zenith follows Electron's recommended multi-process security model with strict p
 | **Focus Sessions** | `session:start`, `session:pause`, `session:resume`, `session:complete`, `session:cancel`, `session:active`, `sessions:list` | Authoritative Main-process timer lifecycle & session persistence |
 | **Activity Events** | `events:list` | Chronological `FocusEvent` audit log |
 | **Distraction Blocker** | `blocker:list`, `blocker:add`, `blocker:toggle`, `blocker:remove`, `blocker:check` | Per-user `BlockedResource` rules and live distraction checking |
+| **Live OS Monitor** | `monitor:status`, `monitor:toggle` | Active macOS app & browser tab URL monitoring (`electron/monitor.cjs`) |
+| **Room Sync (SSE)** | `sync:status`, `sync:configure` | Connect to live multi-device focus room server (`server/room-server.mjs`) |
 | **Gamification** | `gamification:get` | Achievements progress, unlocks, and `PointTransaction` ledger |
 | **Settings & Runtime** | `settings:update`, `system:info` | Personalized preferences and Electron/Node/SQLite runtime diagnostics |
 
@@ -53,7 +55,10 @@ Zenith follows Electron's recommended multi-process security model with strict p
 | `timer:tick` | Emitted every second by the Main-process timer engine with remaining/elapsed time |
 | `session:completed` | Emitted when a focus session completes and points are awarded |
 | `achievement:unlocked` | Emitted whenever a user meets criteria for a new `Achievement` |
-| `distraction:blocked` | Emitted when `blocker:check` intercepts a blocked website/app |
+| `distraction:blocked` | Emitted when `blocker:check` or the live OS monitor intercepts a blocked website/app |
+| `monitor:status` | Emitted with current frontmost app & active browser tab URL during live monitoring |
+| `rooms:synced` | Emitted when the SSE room sync server broadcasts room/participant updates |
+| `sync:status` | Emitted when connection state to the multi-device room sync server changes |
 
 ## Relational Database Schema (`electron/database.cjs`)
 
@@ -100,6 +105,7 @@ You can also register any new account directly from the sign-in screen.
 ```bash
 npm run dev            # Start Vite dev server + Electron desktop app
 npm start              # Build production renderer bundle & start Electron
+npm run sync-server    # Start optional live multi-device room sync server (port 4123)
 npm run build:renderer # Build the React/TypeScript renderer into dist/
 npm run typecheck      # Run TypeScript typechecking (tsc --noEmit)
 npm run test:db        # Verify SQLite schema, FK/UNIQUE constraints, and domain logic

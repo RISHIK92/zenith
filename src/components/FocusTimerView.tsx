@@ -38,10 +38,12 @@ export function FocusTimerView({ user, activeTimer, rooms, selectedRoomId, onSel
   const handleStart = async () => {
     setBusy(true);
     try {
+      const selectedRoom = rooms.find((r) => r.id === selectedRoomId);
       await window.zenithAPI.sessions.start({
         title: title.trim() || 'Deep Work Sprint',
         plannedMinutes: minutes,
         roomId: selectedRoomId || null,
+        roomName: selectedRoom?.name || null,
       });
       await onRefresh();
     } finally {

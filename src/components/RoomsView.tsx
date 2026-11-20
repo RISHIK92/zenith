@@ -1,20 +1,28 @@
 import { FormEvent, useState } from 'react';
-import { Hash, LogIn, LogOut, Play, Plus, Users } from 'lucide-react';
-import type { Room } from '../types';
+import { Hash, LogIn, LogOut, Play, Plus, Radio, Users } from 'lucide-react';
+import type { Room, SyncStatus } from '../types';
 
 type Props = {
   rooms: Room[];
+  syncStatus: SyncStatus | null;
   onRefresh: () => Promise<void>;
   onStartFocusInRoom: (roomId: string) => void;
 };
 
-export function RoomsView({ rooms, onRefresh, onStartFocusInRoom }: Props) {
+export function RoomsView({ rooms, syncStatus, onRefresh, onStartFocusInRoom }: Props) {
   const [joinCode, setJoinCode] = useState('');
   const [name, setName] = useState('');
   const [topic, setTopic] = useState('Study');
   const [description, setDescription] = useState('');
+  const [syncUrl, setSyncUrl] = useState(syncStatus?.url || 'http://127.0.0.1:4123');
   const [error, setError] = useState('');
   const [creating, setCreating] = useState(false);
+
+  const handleSyncConnect = async (e: FormEvent) => {
+    e.preventDefault();
+    await window.zenithAPI.sync.configure(syncUrl.trim());
+    setTimeout(() => onRefresh().catch(() => {}), 400);
+  };
 
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
@@ -90,6 +98,30 @@ export function RoomsView({ rooms, onRefresh, onStartFocusInRoom }: Props) {
           {error}
         </div>
       )}
+
+      <div className="card" style={{ marginBottom: 18 }}>
+        <div className="row-between" style={{ flexWrap: 'wrap', gap: 12 }}>
+          <div className="row-gap">
+            <Radio size={16} color={syncStatus?.connected ? 'var(--teal)' : 'var(--text-muted)'} />
+            <span style={{ fontWeight: 600, fontSize: 14 }}>Multi-Device Room Sync</span>
+            <span className={`badge ${syncStatus?.connected ? 'badge-teal' : 'badge-muted'}`}>
+              {syncStatus?.connected ? 'Live Sync Connected (SSE)' : 'Local SQLite Mode'}
+            </span>
+          </div>
+          <form className="row-gap" onSubmit={handleSyncConnect}>
+            <input
+              className="input mono"
+              style={{ width: 230, padding: '6px 10px' }}
+              value={syncUrl}
+              onChange={(e) => setSyncUrl(e.target.value)}
+              placeholder="http://127.0.0.1:4123"
+            />
+            <button className="btn btn-secondary btn-sm" type="submit">
+              Connect
+            </button>
+          </form>
+        </div>
+      </div>
 
       <div className="card" style={{ marginBottom: 20 }}>
         <div className="card-title">Create a New Focus Room</div>

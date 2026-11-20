@@ -26,7 +26,9 @@ import type {
   FocusEvent,
   FocusSession,
   GamificationData,
+  MonitorStatus,
   Room,
+  SyncStatus,
   User,
 } from './types';
 
@@ -47,6 +49,8 @@ export function App() {
   const [sessions, setSessions] = useState<FocusSession[]>([]);
   const [events, setEvents] = useState<FocusEvent[]>([]);
   const [gamification, setGamification] = useState<GamificationData | null>(null);
+  const [monitorStatus, setMonitorStatus] = useState<MonitorStatus | null>(null);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const pushToast = useCallback((text: string, tone: Toast['tone'] = 'success') => {
@@ -58,13 +62,15 @@ export function App() {
   }, []);
 
   const refreshAll = useCallback(async () => {
-    const [dash, rms, res, sess, evs, gam] = await Promise.all([
+    const [dash, rms, res, sess, evs, gam, mon, sync] = await Promise.all([
       window.zenithAPI.dashboard.get(),
       window.zenithAPI.rooms.list(),
       window.zenithAPI.blocker.list(),
       window.zenithAPI.sessions.list(),
       window.zenithAPI.events.list(),
       window.zenithAPI.gamification.get(),
+      window.zenithAPI.monitor.status(),
+      window.zenithAPI.sync.status(),
     ]);
     setUser(dash.user);
     setDashboard(dash);
@@ -74,6 +80,8 @@ export function App() {
     setSessions(sess);
     setEvents(evs);
     setGamification(gam);
+    setMonitorStatus(mon);
+    setSyncStatus(sync);
   }, []);
 
   useEffect(() => {
@@ -106,11 +114,22 @@ export function App() {
       pushToast(`Distraction blocked: ${res.domainOrApp} (+5 pts)`, 'warn');
       refreshAll().catch(() => {});
     });
+    const unsubMon = window.zenithAPI.onMonitorStatus((st) => setMonitorStatus(st));
+    const unsubSync = window.zenithAPI.onSyncStatus((st) => {
+      setSyncStatus(st);
+      window.zenithAPI.rooms.list().then(setRooms).catch(() => {});
+    });
+    const unsubRooms = window.zenithAPI.onRoomsSynced(() => {
+      window.zenithAPI.rooms.list().then(setRooms).catch(() => {});
+    });
     return () => {
       unsubTick();
       unsubDone();
       unsubAch();
       unsubBlock();
+      unsubMon();
+      unsubSync();
+      unsubRooms();
     };
   }, [user?.id, pushToast, refreshAll]);
 
@@ -334,6 +353,7 @@ export function App() {
         {tab === 'rooms' && (
           <RoomsView
             rooms={rooms}
+            syncStatus={syncStatus}
             onRefresh={refreshAll}
             onStartFocusInRoom={(roomId) => {
               setSelectedRoomId(roomId);
@@ -342,7 +362,9 @@ export function App() {
           />
         )}
 
-        {tab === 'blocker' && <BlockerView resources={resources} onRefresh={refreshAll} />}
+        {tab === 'blocker' && (
+          <BlockerView resources={resources} monitorStatus={monitorStatus} onRefresh={refreshAll} />
+        )}
         {tab === 'activity' && <ActivityView sessions={sessions} events={events} />}
         {tab === 'achievements' && <GamificationView data={gamification} />}
         {tab === 'settings' && <SettingsView user={user} onUpdated={(u) => setUser(u)} />}

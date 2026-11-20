@@ -8,6 +8,7 @@
     "build:renderer": "vite build",
     "dev": "node scripts/dev.mjs",
     "start": "npm run build:renderer && electron .",
+    "sync-server": "node server/room-server.mjs",
     "typecheck": "tsc --noEmit",
     "test:db": "node scripts/test-db.mjs"
   },

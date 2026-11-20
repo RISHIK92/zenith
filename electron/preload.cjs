@@ -6,6 +6,9 @@ const ALLOWED_EVENT_CHANNELS = new Set([
   'session:completed',
   'achievement:unlocked',
   'distraction:blocked',
+  'monitor:status',
+  'rooms:synced',
+  'sync:status',
 ]);
 
 function subscribe(channel, callback) {
@@ -54,6 +57,14 @@ contextBridge.exposeInMainWorld('zenithAPI', {
     remove: (resourceId) => ipcRenderer.invoke('blocker:remove', resourceId),
     check: (target) => ipcRenderer.invoke('blocker:check', target),
   },
+  monitor: {
+    status: () => ipcRenderer.invoke('monitor:status'),
+    toggle: (enabled) => ipcRenderer.invoke('monitor:toggle', enabled),
+  },
+  sync: {
+    status: () => ipcRenderer.invoke('sync:status'),
+    configure: (url) => ipcRenderer.invoke('sync:configure', url),
+  },
   gamification: {
     get: () => ipcRenderer.invoke('gamification:get'),
   },
@@ -67,4 +78,7 @@ contextBridge.exposeInMainWorld('zenithAPI', {
   onSessionCompleted: (cb) => subscribe('session:completed', cb),
   onAchievementUnlocked: (cb) => subscribe('achievement:unlocked', cb),
   onDistractionBlocked: (cb) => subscribe('distraction:blocked', cb),
+  onMonitorStatus: (cb) => subscribe('monitor:status', cb),
+  onRoomsSynced: (cb) => subscribe('rooms:synced', cb),
+  onSyncStatus: (cb) => subscribe('sync:status', cb),
 });

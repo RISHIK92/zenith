@@ -159,6 +159,19 @@ export type SystemInfo = {
   dbPath: string;
 };
 
+export type MonitorStatus = {
+  running: boolean;
+  activeApp: string;
+  activeUrl: string;
+  lastCheckedAt: string | null;
+  supported: boolean;
+};
+
+export type SyncStatus = {
+  url: string;
+  connected: boolean;
+};
+
 export interface ZenithAPI {
   auth: {
     register: (payload: { username: string; email: string; password: string; displayName: string }) => Promise<User>;
@@ -176,7 +189,7 @@ export interface ZenithAPI {
     leave: (roomId: string) => Promise<{ ok: boolean }>;
   };
   sessions: {
-    start: (payload: { title: string; plannedMinutes: number; roomId?: string | null }) => Promise<{ session: FocusSession; activeTimer: ActiveTimer }>;
+    start: (payload: { title: string; plannedMinutes: number; roomId?: string | null; roomName?: string | null }) => Promise<{ session: FocusSession; activeTimer: ActiveTimer }>;
     pause: () => Promise<ActiveTimer | null>;
     resume: () => Promise<ActiveTimer | null>;
     complete: () => Promise<{ session: FocusSession; pointsEarned: number; unlocked: Achievement[] } | null>;
@@ -194,6 +207,14 @@ export interface ZenithAPI {
     remove: (resourceId: string) => Promise<{ ok: boolean }>;
     check: (target: string) => Promise<{ blocked: boolean; resource: BlockedResource | null; unlocked: Achievement[] }>;
   };
+  monitor: {
+    status: () => Promise<MonitorStatus>;
+    toggle: (enabled: boolean) => Promise<MonitorStatus>;
+  };
+  sync: {
+    status: () => Promise<SyncStatus>;
+    configure: (url: string) => Promise<SyncStatus>;
+  };
   gamification: {
     get: () => Promise<GamificationData>;
   };
@@ -207,6 +228,9 @@ export interface ZenithAPI {
   onSessionCompleted: (cb: (payload: { session: FocusSession; pointsEarned: number; unlocked: Achievement[] }) => void) => () => void;
   onAchievementUnlocked: (cb: (achievement: Achievement) => void) => () => void;
   onDistractionBlocked: (cb: (resource: BlockedResource) => void) => () => void;
+  onMonitorStatus: (cb: (status: MonitorStatus) => void) => () => void;
+  onRoomsSynced: (cb: (payload: { updatedAt: string }) => void) => () => void;
+  onSyncStatus: (cb: (status: SyncStatus) => void) => () => void;
 }
 
 declare global {
