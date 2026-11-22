@@ -8,9 +8,43 @@
     "build:renderer": "vite build",
     "dev": "node scripts/dev.mjs",
     "start": "npm run build:renderer && electron .",
+    "dist:mac": "npm run build:renderer && electron-builder --mac dmg --universal",
     "sync-server": "node server/room-server.mjs",
     "typecheck": "tsc --noEmit",
     "test:db": "node scripts/test-db.mjs"
+  },
+  "build": {
+    "appId": "com.rishik.zenith",
+    "productName": "Zenith",
+    "afterPack": "scripts/sign-adhoc.cjs",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "**/sql-wasm.wasm"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "identity": null,
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ]
+    },
+    "dmg": {
+      "artifactName": "Zenith-${version}-universal.dmg"
+    }
   },
   "dependencies": {
     "lucide-react": "^0.511.0",
@@ -23,6 +57,7 @@
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^4.5.0",
     "electron": "^36.2.0",
+    "electron-builder": "^26.18.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"
   }
